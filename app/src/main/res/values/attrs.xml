@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+  <declare-styleable name="BodyView">
+    <attr name="textSize" format="dimension"/>
+    <attr name="smoothLineWidth" format="dimension"/>
+    <attr name="smoothLineColor" format="color"/>
+    <attr name="rawLineWidth" format="dimension"/>
+    <attr name="rawDotColor" format="color"/>
+    <attr name="labelMargin" format="dimension"/>
+    <attr name="highlightDotRadius" format="dimension"/>
+    <attr name="rawDotRadius" format="dimension"/>
+  </declare-styleable>
+</resources>

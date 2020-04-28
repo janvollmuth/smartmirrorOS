@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+  <!-- Get the Dark Sky API key from: https://darksky.net/dev -->
+  <string name="dark_sky_api_key">DARK_SKY_API_KEY</string>
+
+  <!-- Get the Open Weather Map API key from: https://openweathermap.org/ -->
+  <string name="open_weather_map_api_key">ddd8cf53270de486557d5a8c7382f535</string>
+
+  <!-- Get the Nokia Health API keys from: http://developer.health.nokia.com/oauth2/ -->
+  <!-- Consider using: https://colab.research.google.com/drive/1bkU7T5uv368nTQLN66TosILYCmIq0L6F -->
+  <string name="nokia_health_client_id">NOKIA_HEALTH_CLIENT_ID</string>
+  <string name="nokia_health_client_secret">NOKIA_HEALTH_CLIENT_SECRET</string>
+  <string name="nokia_health_refresh_token">NOKIA_HEALTH_REFRESH_TOKEN</string>
+
+  <!-- Get the Google Maps Directions API key from: https://developers.google.com/maps/documentation/directions/ -->
+  <string name="google_maps_directions_api_key">GOOGLE_MAPS_DIRECTIONS_API_KEY</string>
+</resources>
