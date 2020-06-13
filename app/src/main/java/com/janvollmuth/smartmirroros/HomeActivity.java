@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -177,10 +176,6 @@ public class HomeActivity extends Activity {
     for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
       newsViews[i] = (TextView) findViewById(NEWS_VIEW_IDS[i]);
     }
-    bodyView = (BodyView) findViewById(R.id.body);
-    commuteTextView = (TextView) findViewById(R.id.commuteText);
-    travelModeView = (ImageView) findViewById(R.id.travelMode);
-    trafficTrendView = (ImageView) findViewById(R.id.trafficTrend);
     microphoneView = (ImageButton) findViewById(R.id.microphone);
     microphoneResult = (TextView) findViewById(R.id.microphoneResult);
 
@@ -198,7 +193,6 @@ public class HomeActivity extends Activity {
     weather.start();
     news.start();
     body.start();
-    commute.start();
   }
 
   @Override
@@ -206,7 +200,6 @@ public class HomeActivity extends Activity {
     weather.stop();
     news.stop();
     body.stop();
-    commute.stop();
     super.onStop();
   }
 
@@ -242,7 +235,7 @@ public class HomeActivity extends Activity {
 
       microphoneResult.setText(finaltext);
 
-      if(finaltext.equals("News verstecken")){
+      if(finaltext.equals("News ausblenden")){
         for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
           newsViews[i].setVisibility(View.INVISIBLE);
         }
