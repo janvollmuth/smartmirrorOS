@@ -6,10 +6,11 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.fragment.app.FragmentActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ import com.janvollmuth.smartmirroros.Weather.WeatherData;
 /**
  * The main {@link Activity} class and entry point into the UI.
  */
-public class HomeActivity extends Activity {
+public class HomeActivity extends FragmentActivity {
 
   /**
    * The IDs of {@link TextView TextViews} in {@link R.layout#activity_home} which contain the news
@@ -120,41 +121,12 @@ public class HomeActivity extends Activity {
         }
       };
 
-  /**
-   * The listener used to populate the UI with the commute summary.
-   */
-  private final UpdateListener<CommuteSummary> commuteUpdateListener =
-      new UpdateListener<CommuteSummary>() {
-        @Override
-        public void onUpdate(CommuteSummary summary) {
-          if (summary != null) {
-            commuteTextView.setText(summary.text);
-            commuteTextView.setVisibility(View.VISIBLE);
-            travelModeView.setImageDrawable(summary.travelModeIcon);
-            travelModeView.setVisibility(View.VISIBLE);
-            if (summary.trafficTrendIcon != null) {
-              trafficTrendView.setImageDrawable(summary.trafficTrendIcon);
-              trafficTrendView.setVisibility(View.VISIBLE);
-            } else {
-              trafficTrendView.setVisibility(View.GONE);
-            }
-          } else {
-            commuteTextView.setVisibility(View.GONE);
-            travelModeView.setVisibility(View.GONE);
-            trafficTrendView.setVisibility(View.GONE);
-          }
-        }
-      };
-
   private TextView temperatureView;
   private TextView weatherSummaryView;
   private TextView precipitationView;
   private ImageView iconView;
   private TextView[] newsViews = new TextView[NEWS_VIEW_IDS.length];
   private BodyView bodyView;
-  private TextView commuteTextView;
-  private ImageView travelModeView;
-  private ImageView trafficTrendView;
   private ImageButton microphoneView;
   private TextView microphoneResult;
 
@@ -163,12 +135,13 @@ public class HomeActivity extends Activity {
   private Body body;
   private Commute commute;
   private Util util;
-  private Assistant assistant;
+  //private Assistant assistant;
+  private YoutubePlayerFragment youtubePlayer;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_home);
+    setContentView(R.layout.activity_home); //youtubeplayer.xml
 
     temperatureView = (TextView) findViewById(R.id.temperature);
     weatherSummaryView = (TextView) findViewById(R.id.weather_summary);
@@ -178,18 +151,29 @@ public class HomeActivity extends Activity {
       newsViews[i] = (TextView) findViewById(NEWS_VIEW_IDS[i]);
     }
     bodyView = (BodyView) findViewById(R.id.body);
-    commuteTextView = (TextView) findViewById(R.id.commuteText);
-    travelModeView = (ImageView) findViewById(R.id.travelMode);
-    trafficTrendView = (ImageView) findViewById(R.id.trafficTrend);
     microphoneView = (ImageButton) findViewById(R.id.microphone);
     microphoneResult = (TextView) findViewById(R.id.microphoneResult);
 
     weather = new Weather(this, weatherUpdateListener);
     news = new News(newsUpdateListener);
     body = new Body(this, bodyUpdateListener);
-    commute = new Commute(this, commuteUpdateListener);
     util = new Util(this);
-    assistant = new Assistant(this, microphoneView);
+    //assistant = new Assistant(this, microphoneView);
+
+
+    microphoneView.setOnClickListener(new View.OnClickListener(){
+
+      @Override
+      public void onClick(View view) {
+          openYouTubeActivity();
+      }
+    });
+
+  }
+
+  void openYouTubeActivity(){
+    Intent intent = new Intent(this, YoutubePlayerFragment.class);
+    startActivity(intent);
   }
 
   @Override
@@ -198,7 +182,6 @@ public class HomeActivity extends Activity {
     weather.start();
     news.start();
     body.start();
-    commute.start();
   }
 
   @Override
@@ -206,7 +189,6 @@ public class HomeActivity extends Activity {
     weather.stop();
     news.stop();
     body.stop();
-    commute.stop();
     super.onStop();
   }
 
@@ -230,7 +212,7 @@ public class HomeActivity extends Activity {
     return Locale.US.equals(Locale.getDefault()) ?
         temperatureFahrenheit : (temperatureFahrenheit - 32.0) / 1.8;
   }
-
+/*
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
@@ -254,5 +236,5 @@ public class HomeActivity extends Activity {
         }
       }
     }
-  }
+  }*/
 }
