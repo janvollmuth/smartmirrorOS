@@ -15,7 +15,7 @@ import java.util.Locale;
  */
 public class Assistant {
 
-   /* private static final String TAG = Assistant.class.getSimpleName();
+    private static final String TAG = Assistant.class.getSimpleName();
 
     private ImageButton microphoneButton;
     private EditText edittext;
@@ -41,5 +41,5 @@ public class Assistant {
                 mActivity.startActivityForResult(speechRecognitionIntent, SPEECHINTENT_REQ_CODE);
             }
         });
-    }*/
+    }
 }

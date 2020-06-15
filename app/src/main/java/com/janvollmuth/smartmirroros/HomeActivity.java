@@ -1,18 +1,26 @@
 package com.janvollmuth.smartmirroros;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -121,6 +129,8 @@ public class HomeActivity extends FragmentActivity {
         }
       };
 
+  private static final String TAG = Assistant.class.getSimpleName();
+
   private TextView temperatureView;
   private TextView weatherSummaryView;
   private TextView precipitationView;
@@ -133,14 +143,20 @@ public class HomeActivity extends FragmentActivity {
   private Weather weather;
   private News news;
   private Body body;
-  private Commute commute;
   private Util util;
-  //private Assistant assistant;
   private YoutubePlayerFragment youtubePlayer;
+
+  public final int SPEECHINTENT_REQ_CODE = 11;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+
+    ActivityCompat.requestPermissions(this,
+            new String[]{Manifest.permission.RECORD_AUDIO},
+            1);
+
     setContentView(R.layout.activity_home); //youtubeplayer.xml
 
     temperatureView = (TextView) findViewById(R.id.temperature);
@@ -158,7 +174,6 @@ public class HomeActivity extends FragmentActivity {
     news = new News(newsUpdateListener);
     body = new Body(this, bodyUpdateListener);
     util = new Util(this);
-    //assistant = new Assistant(this, microphoneView);
 
 
     microphoneView.setOnClickListener(new View.OnClickListener(){
@@ -174,6 +189,32 @@ public class HomeActivity extends FragmentActivity {
   void openYouTubeActivity(){
     Intent intent = new Intent(this, YoutubePlayerFragment.class);
     startActivity(intent);
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode,
+                                         String permissions[], int[] grantResults) {
+    switch (requestCode) {
+      case 1: {
+
+        // If request is cancelled, the result arrays are empty.
+        if (grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+          // permission was granted, yay! Do the
+          // contacts-related task you need to do.
+        } else {
+
+          // permission denied, boo! Disable the
+          // functionality that depends on this permission.
+          Toast.makeText(this, "Permission denied to record audio", Toast.LENGTH_SHORT).show();
+        }
+        return;
+      }
+
+      // other 'case' lines to check for other
+      // permissions this app might request
+    }
   }
 
   @Override
@@ -212,19 +253,19 @@ public class HomeActivity extends FragmentActivity {
     return Locale.US.equals(Locale.getDefault()) ?
         temperatureFahrenheit : (temperatureFahrenheit - 32.0) / 1.8;
   }
-/*
+
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
 
-    if(requestCode == assistant.SPEECHINTENT_REQ_CODE && resultCode == RESULT_OK){
+    if(requestCode == SPEECHINTENT_REQ_CODE && resultCode == RESULT_OK){
       ArrayList<String> speechResult = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
 
       String finaltext = speechResult.get(0);
 
       microphoneResult.setText(finaltext);
 
-      if(finaltext.equals("News verstecken")){
+      if(finaltext.equals("News ausblenden")){
         for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
           newsViews[i].setVisibility(View.INVISIBLE);
         }
@@ -236,5 +277,41 @@ public class HomeActivity extends FragmentActivity {
         }
       }
     }
-  }*/
+  }
+
+  private final List<Integer> blockedKeys = new ArrayList<>(Arrays.asList(KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_POWER));
+
+  @Override
+  public void onWindowFocusChanged(boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    if (!hasFocus) {
+      // Close every kind of system dialog
+      Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+      sendBroadcast(closeDialog);
+
+      Log.d(TAG, "Clicked Button.");
+
+      Intent speechRecognitionIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+      speechRecognitionIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toString());
+
+      startActivityForResult(speechRecognitionIntent, SPEECHINTENT_REQ_CODE);
+    }
+  }
+
+  @Override
+  public void onBackPressed() {
+    // nothing to do here
+    // … really
+  }
+
+  @SuppressLint("RestrictedApi")
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    if (blockedKeys.contains(event.getKeyCode())) {
+      return true;
+    } else {
+
+      return super.dispatchKeyEvent(event);
+    }
+  }
 }

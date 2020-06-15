@@ -175,12 +175,4 @@
             tools:text="Trump quip about North Korea's Kim sparks outcry on social media"/>
     </LinearLayout>
 
-    <LinearLayout android:layout_height="200px"
-        android:layout_width="200px">
-        <Button
-            android:layout_width="100px"
-            android:layout_height="100px">
-        </Button>
-    </LinearLayout>
-
 </RelativeLayout>
