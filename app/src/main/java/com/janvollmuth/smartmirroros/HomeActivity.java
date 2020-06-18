@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Locale;
 
 import com.janvollmuth.smartmirroros.Body.BodyMeasure;
-import com.janvollmuth.smartmirroros.Commute.CommuteSummary;
 import com.janvollmuth.smartmirroros.DataUpdater.UpdateListener;
 import com.janvollmuth.smartmirroros.Weather.WeatherData;
 
@@ -129,7 +128,7 @@ public class HomeActivity extends FragmentActivity {
         }
       };
 
-  private static final String TAG = Assistant.class.getSimpleName();
+  private static final String TAG = HomeActivity.class.getSimpleName();
 
   private TextView temperatureView;
   private TextView weatherSummaryView;
@@ -144,9 +143,9 @@ public class HomeActivity extends FragmentActivity {
   private News news;
   private Body body;
   private Util util;
-  private YoutubePlayerFragment youtubePlayer;
+  private YoutubePlayerActivity youtubePlayer;
 
-  public final int SPEECHINTENT_REQ_CODE = 11;
+  private final int SPEECHINTENT_REQ_CODE = 11;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -187,7 +186,7 @@ public class HomeActivity extends FragmentActivity {
   }
 
   void openYouTubeActivity(){
-    Intent intent = new Intent(this, YoutubePlayerFragment.class);
+    Intent intent = new Intent(this, YoutubePlayerActivity.class);
     startActivity(intent);
   }
 
@@ -248,10 +247,11 @@ public class HomeActivity extends FragmentActivity {
    * Converts a temperature in degrees Fahrenheit to degrees Celsius, depending on the
    * {@link Locale}.
    */
-  private double getLocalizedTemperature(double temperatureFahrenheit) {
-    // First approximation: Fahrenheit for US and Celsius anywhere else.
+  private double getLocalizedTemperature(double temperatureKelvin) {
+    // First approximation: Kelvin for US and Celsius anywhere else.
+
     return Locale.US.equals(Locale.getDefault()) ?
-        temperatureFahrenheit : (temperatureFahrenheit - 32.0) / 1.8;
+        temperatureKelvin : (temperatureKelvin - 273.15);
   }
 
   @Override
@@ -265,16 +265,20 @@ public class HomeActivity extends FragmentActivity {
 
       microphoneResult.setText(finaltext);
 
-      if(finaltext.equals("News ausblenden")){
+      if(finaltext.toLowerCase().equals("news ausblenden")){
         for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
           newsViews[i].setVisibility(View.INVISIBLE);
         }
       }
 
-      if(finaltext.equals("News anzeigen")){
+      if(finaltext.toLowerCase().equals("news anzeigen")){
         for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
           newsViews[i].setVisibility(View.VISIBLE);
         }
+      }
+
+      if(finaltext.toLowerCase().equals("zu youtube wechseln")){
+        openYouTubeActivity();
       }
     }
   }
