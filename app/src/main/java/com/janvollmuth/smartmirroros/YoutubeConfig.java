@@ -1,13 +1,11 @@
 package com.janvollmuth.smartmirroros;
 
-public class YoutubeConfig {
+public interface YoutubeConfig {
+    String API_Key = "AIzaSyCm1mkZI-_HbuixBa-xYPj3UH4V1vq7XIw";
+    String PLAYLIST = "PL58xIFEAVt7kWlGF1R19-M2dB-1N-wQqP";
 
-    public YoutubeConfig() {
-    }
-
-    private static final String API_Key = "AIzaSyCm1mkZI-_HbuixBa-xYPj3UH4V1vq7XIw";
-
-    public static String getAPI_Key() {
-        return API_Key;
-    }
+    String PLAY_VIDEO = "playVideo";
+    String STOP_VIDEO = "stopVideo";
+    String NEXT_VIDEO = "nextVideo";
+    String PREVIOUS_VIDEO = "previousVideo";
 }

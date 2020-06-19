@@ -17,21 +17,26 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import com.janvollmuth.smartmirroros.Body.BodyMeasure;
+import com.google.android.youtube.player.YouTubeBaseActivity;
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerFragment;
 import com.janvollmuth.smartmirroros.DataUpdater.UpdateListener;
 import com.janvollmuth.smartmirroros.Weather.WeatherData;
+
+import static com.janvollmuth.smartmirroros.VoiceCommands.*;
+import static com.janvollmuth.smartmirroros.YoutubeConfig.*;
 
 /**
  * The main {@link Activity} class and entry point into the UI.
  */
-public class HomeActivity extends FragmentActivity {
+public class HomeActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener{
 
   /**
    * The IDs of {@link TextView TextViews} in {@link R.layout#activity_home} which contain the news
@@ -112,22 +117,6 @@ public class HomeActivity extends FragmentActivity {
     }
   };
 
-  /**
-   * The listener used to populate the UI with body measurements.
-   */
-  private final UpdateListener<BodyMeasure[]> bodyUpdateListener =
-      new UpdateListener<BodyMeasure[]>() {
-        @Override
-        public void onUpdate(BodyMeasure[] bodyMeasures) {
-          if (bodyMeasures != null) {
-            bodyView.setBodyMeasures(bodyMeasures);
-            bodyView.setVisibility(View.VISIBLE);
-          } else {
-            bodyView.setVisibility(View.GONE);
-          }
-        }
-      };
-
   private static final String TAG = HomeActivity.class.getSimpleName();
 
   private TextView temperatureView;
@@ -135,17 +124,18 @@ public class HomeActivity extends FragmentActivity {
   private TextView precipitationView;
   private ImageView iconView;
   private TextView[] newsViews = new TextView[NEWS_VIEW_IDS.length];
-  private BodyView bodyView;
   private ImageButton microphoneView;
   private TextView microphoneResult;
 
   private Weather weather;
   private News news;
-  private Body body;
   private Util util;
-  private YoutubePlayerActivity youtubePlayer;
+  private YouTubePlayerFragment youTubePlayerFragment;
+  private YouTubePlayer youTubePlayer;
+  private String playerState = STOP_VIDEO;
 
   private final int SPEECHINTENT_REQ_CODE = 11;
+  private static final int RECOVERY_DIALOG_REQUEST = 1;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -165,29 +155,27 @@ public class HomeActivity extends FragmentActivity {
     for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
       newsViews[i] = (TextView) findViewById(NEWS_VIEW_IDS[i]);
     }
-    bodyView = (BodyView) findViewById(R.id.body);
     microphoneView = (ImageButton) findViewById(R.id.microphone);
     microphoneResult = (TextView) findViewById(R.id.microphoneResult);
 
     weather = new Weather(this, weatherUpdateListener);
     news = new News(newsUpdateListener);
-    body = new Body(this, bodyUpdateListener);
     util = new Util(this);
 
+    youTubePlayerFragment = (YouTubePlayerFragment) getFragmentManager().findFragmentById(R.id.youtubeplayerFragment);
 
-    microphoneView.setOnClickListener(new View.OnClickListener(){
+    microphoneView.setOnClickListener(view -> {
+      Log.d(TAG, "Clicked Button.");
 
-      @Override
-      public void onClick(View view) {
-          openYouTubeActivity();
-      }
+        youTubePlayer.play();
+
+
+      /*Intent speechRecognitionIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+      speechRecognitionIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toString());
+
+      startActivityForResult(speechRecognitionIntent, SPEECHINTENT_REQ_CODE);*/
     });
 
-  }
-
-  void openYouTubeActivity(){
-    Intent intent = new Intent(this, YoutubePlayerActivity.class);
-    startActivity(intent);
   }
 
   @Override
@@ -221,14 +209,12 @@ public class HomeActivity extends FragmentActivity {
     super.onStart();
     weather.start();
     news.start();
-    body.start();
   }
 
   @Override
   protected void onStop() {
     weather.stop();
     news.stop();
-    body.stop();
     super.onStop();
   }
 
@@ -265,20 +251,46 @@ public class HomeActivity extends FragmentActivity {
 
       microphoneResult.setText(finaltext);
 
-      if(finaltext.toLowerCase().equals("news ausblenden")){
-        for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
-          newsViews[i].setVisibility(View.INVISIBLE);
-        }
-      }
+      switch(finaltext.toLowerCase()){
+        case VC_START_YOUTUBE:
+          youTubePlayerFragment.initialize(YoutubeConfig.API_Key, this);
+          playerState = PLAY_VIDEO;
+          break;
 
-      if(finaltext.toLowerCase().equals("news anzeigen")){
-        for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
-          newsViews[i].setVisibility(View.VISIBLE);
-        }
-      }
+        case VC_STOP_YOUTUBE:
+          youTubePlayerFragment.onDestroy();
+          playerState = STOP_VIDEO;
+          break;
 
-      if(finaltext.toLowerCase().equals("zu youtube wechseln")){
-        openYouTubeActivity();
+        case VC_START_VIDEO:
+          playerState = PLAY_VIDEO;
+          break;
+
+        case VC_STOP_VIDEO:
+          playerState = STOP_VIDEO;
+          break;
+
+        case VC_NEXT_VIDEO:
+          playerState = NEXT_VIDEO;
+          break;
+
+        case VC_PREVIOUS_VIDEO:
+          playerState = PREVIOUS_VIDEO;
+          break;
+
+
+
+        case VC_SHOW_NEWS:
+          for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
+            newsViews[i].setVisibility(View.VISIBLE);
+          }
+          break;
+
+        case VC_HIDE_NEWS:
+          for (int i = 0; i < NEWS_VIEW_IDS.length; i++) {
+            newsViews[i].setVisibility(View.INVISIBLE);
+          }
+          break;
       }
     }
   }
@@ -292,8 +304,6 @@ public class HomeActivity extends FragmentActivity {
       // Close every kind of system dialog
       Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
       sendBroadcast(closeDialog);
-
-      Log.d(TAG, "Clicked Button.");
 
       Intent speechRecognitionIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
       speechRecognitionIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toString());
@@ -316,6 +326,108 @@ public class HomeActivity extends FragmentActivity {
     } else {
 
       return super.dispatchKeyEvent(event);
+    }
+  }
+
+  @Override
+  public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+
+    Log.d(TAG, "onClick: Done initializing");
+    this.youTubePlayer = youTubePlayer;
+    youTubePlayer.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
+      @Override
+      public void onLoading() {
+
+      }
+
+      @Override
+      public void onLoaded(String s) {
+
+      }
+
+      @Override
+      public void onAdStarted() {
+
+      }
+
+      @Override
+      public void onVideoStarted() {
+
+      }
+
+      @Override
+      public void onVideoEnded() {
+        if(youTubePlayer.hasNext()){
+          youTubePlayer.next();
+        }
+      }
+
+      @Override
+      public void onError(YouTubePlayer.ErrorReason errorReason) {
+
+      }
+    });
+
+    youTubePlayer.setPlaybackEventListener(new YouTubePlayer.PlaybackEventListener() {
+      @Override
+      public void onPlaying() {
+
+      }
+
+      @Override
+      public void onPaused() {
+      }
+
+      @Override
+      public void onStopped() {
+
+        Log.d("Youtube", "State: " + playerState);
+
+        switch (playerState){
+          case PLAY_VIDEO:
+            youTubePlayer.play();
+            break;
+
+          case STOP_VIDEO:
+            break;
+
+          case NEXT_VIDEO:
+            if(youTubePlayer.hasNext()){
+              youTubePlayer.next();
+            }
+            break;
+
+          case PREVIOUS_VIDEO:
+            if(youTubePlayer.hasPrevious()){
+              youTubePlayer.previous();
+            }
+        }
+      }
+
+      @Override
+      public void onBuffering(boolean b) {
+
+      }
+
+      @Override
+      public void onSeekTo(int i) {
+
+      }
+    });
+
+    youTubePlayer.loadPlaylist(PLAYLIST);
+  }
+
+  @Override
+  public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+
+    if(youTubeInitializationResult.isUserRecoverableError()) {
+      youTubeInitializationResult.getErrorDialog(this, RECOVERY_DIALOG_REQUEST).show();
+    } else {
+      String errorMessage = String.format(
+              "There was an error initializing the YouTubePlayer (%1$s)",
+              youTubeInitializationResult.toString());
+      Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
     }
   }
 }
