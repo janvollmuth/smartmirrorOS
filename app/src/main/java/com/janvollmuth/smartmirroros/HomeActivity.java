@@ -146,7 +146,7 @@ public class HomeActivity extends YouTubeBaseActivity implements YouTubePlayer.O
             new String[]{Manifest.permission.RECORD_AUDIO},
             1);
 
-    setContentView(R.layout.activity_home); //youtubeplayer.xml
+    setContentView(R.layout.activity_home);
 
     temperatureView = (TextView) findViewById(R.id.temperature);
     weatherSummaryView = (TextView) findViewById(R.id.weather_summary);
@@ -166,39 +166,27 @@ public class HomeActivity extends YouTubeBaseActivity implements YouTubePlayer.O
 
     microphoneView.setOnClickListener(view -> {
       Log.d(TAG, "Clicked Button.");
-
-        youTubePlayer.play();
-
-
-      /*Intent speechRecognitionIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+      Intent speechRecognitionIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
       speechRecognitionIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toString());
 
-      startActivityForResult(speechRecognitionIntent, SPEECHINTENT_REQ_CODE);*/
+      startActivityForResult(speechRecognitionIntent, SPEECHINTENT_REQ_CODE);
     });
 
   }
 
   @Override
-  public void onRequestPermissionsResult(int requestCode,
-                                         String permissions[], int[] grantResults) {
-    switch (requestCode) {
-      case 1: {
+  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    if (requestCode == 1) {// If request is cancelled, the result arrays are empty.
+      if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-        // If request is cancelled, the result arrays are empty.
-        if (grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        // permission was granted, yay! Do the
+        // contacts-related task you need to do.
+      } else {
 
-          // permission was granted, yay! Do the
-          // contacts-related task you need to do.
-        } else {
-
-          // permission denied, boo! Disable the
-          // functionality that depends on this permission.
-          Toast.makeText(this, "Permission denied to record audio", Toast.LENGTH_SHORT).show();
-        }
-        return;
+        // permission denied, boo! Disable the
+        // functionality that depends on this permission.
+        Toast.makeText(this, "Permission denied to record audio", Toast.LENGTH_SHORT).show();
       }
-
       // other 'case' lines to check for other
       // permissions this app might request
     }
@@ -305,17 +293,12 @@ public class HomeActivity extends YouTubeBaseActivity implements YouTubePlayer.O
       Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
       sendBroadcast(closeDialog);
 
-      Intent speechRecognitionIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-      speechRecognitionIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toString());
-
-      startActivityForResult(speechRecognitionIntent, SPEECHINTENT_REQ_CODE);
+      initializeVoiceControl();
     }
   }
 
   @Override
   public void onBackPressed() {
-    // nothing to do here
-    // … really
   }
 
   @SuppressLint("RestrictedApi")
@@ -337,22 +320,18 @@ public class HomeActivity extends YouTubeBaseActivity implements YouTubePlayer.O
     youTubePlayer.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
       @Override
       public void onLoading() {
-
       }
 
       @Override
       public void onLoaded(String s) {
-
       }
 
       @Override
       public void onAdStarted() {
-
       }
 
       @Override
       public void onVideoStarted() {
-
       }
 
       @Override
@@ -380,9 +359,7 @@ public class HomeActivity extends YouTubeBaseActivity implements YouTubePlayer.O
 
       @Override
       public void onStopped() {
-
         Log.d("Youtube", "State: " + playerState);
-
         switch (playerState){
           case PLAY_VIDEO:
             youTubePlayer.play();
@@ -403,12 +380,10 @@ public class HomeActivity extends YouTubeBaseActivity implements YouTubePlayer.O
             }
         }
       }
-
       @Override
       public void onBuffering(boolean b) {
 
       }
-
       @Override
       public void onSeekTo(int i) {
 
@@ -429,5 +404,12 @@ public class HomeActivity extends YouTubeBaseActivity implements YouTubePlayer.O
               youTubeInitializationResult.toString());
       Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
     }
+  }
+
+  public void initializeVoiceControl(){
+    Intent speechRecognitionIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+    speechRecognitionIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toString());
+
+    startActivityForResult(speechRecognitionIntent, SPEECHINTENT_REQ_CODE);
   }
 }
